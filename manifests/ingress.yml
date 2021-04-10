@@ -1,0 +1,17 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+    name: "gslabdemoeastakscluster-5b2c"
+    labels:
+        app: "gslabdemoeastakscluster-5b2c"
+    annotations:
+        kubernetes.io/ingress.class: addon-http-application-routing
+spec:
+    rules:
+        - host: gs-lab-demo-east-aks-cluster-namespace1-gslabdemoeastakscluster-5b2c.18827fad15ab4bd798e5.eastus.aksapp.io
+          http:
+            paths:
+            - path: /
+              backend:
+                serviceName: "gslabdemoeastakscluster-5b2c"
+                servicePort: 80
