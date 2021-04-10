@@ -1,0 +1,19 @@
+apiVersion : apps/v1
+kind: Deployment
+metadata:
+  name: "gslabdemoeastakscluster-5b2c"
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: "gslabdemoeastakscluster-5b2c"
+  template:
+    metadata:
+      labels:
+        app: "gslabdemoeastakscluster-5b2c"
+    spec:
+      containers:
+        - name: "gslabdemoeastakscluster-5b2c"
+          image: "gslabdemoacr.azurecr.io/gslabdemoeastakscluster"
+          ports:
+          - containerPort: 80
