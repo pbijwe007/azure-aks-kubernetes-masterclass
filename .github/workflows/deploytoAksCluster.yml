@@ -1,0 +1,51 @@
+on: [push]
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@master
+    
+    - uses: azure/docker-login@v1
+      with:
+        login-server: gslabdemoacr.azurecr.io
+        username: ${{ secrets.acr_gslabdemoacr_username }}
+        password: ${{ secrets.acr_gslabdemoacr_password }}
+    
+    - name: Build and push image to ACR
+      id: build-image
+      run: |
+        docker build "$GITHUB_WORKSPACE/18-Azure-Container-Registry-ACR/18-01-ACR-attach-to-AKS/docker-manifests" -f  "18-Azure-Container-Registry-ACR/18-01-ACR-attach-to-AKS/docker-manifests/Dockerfile" -t gslabdemoacr.azurecr.io/gslabdemoeastakscluster:${{ github.sha }} --label dockerfile-path=18-Azure-Container-Registry-ACR/18-01-ACR-attach-to-AKS/docker-manifests/Dockerfile
+        docker push gslabdemoacr.azurecr.io/gslabdemoeastakscluster:${{ github.sha }}
+    
+    - uses: azure/k8s-set-context@v1
+      with:
+         kubeconfig: ${{ secrets.aks_gslabdemoeastakscluster_kubeConfig }}
+      id: login
+    
+    - name: Create namespace
+      run: |
+        namespacePresent=`kubectl get namespace | grep gs-lab-demo-east-aks-cluster-namespace1 | wc -l`
+        if [ $namespacePresent -eq 0 ]
+        then
+            echo `kubectl create namespace gs-lab-demo-east-aks-cluster-namespace1`
+        fi
+
+    - uses: azure/k8s-create-secret@v1
+      with:
+        namespace: gs-lab-demo-east-aks-cluster-namespace1
+        container-registry-url: gslabdemoacr.azurecr.io
+        container-registry-username: ${{ secrets.acr_gslabdemoacr_username }}
+        container-registry-password: ${{ secrets.acr_gslabdemoacr_password }}
+        secret-name: gslabdemoeasdockerauth
+       
+    - uses: azure/k8s-deploy@v1.2
+      with:
+        namespace: gs-lab-demo-east-aks-cluster-namespace1
+        manifests: |
+          manifests/deployment.yml
+          manifests/service.yml
+          manifests/ingress.yml
+        images: |
+          gslabdemoacr.azurecr.io/gslabdemoeastakscluster:${{ github.sha }}
+        imagepullsecrets: |
+          gslabdemoeasdockerauth
