@@ -1,0 +1,19 @@
+apiVersion : apps/v1
+kind: Deployment
+metadata:
+  name: "pocakscluster-52fc"
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: "pocakscluster-52fc"
+  template:
+    metadata:
+      labels:
+        app: "pocakscluster-52fc"
+    spec:
+      containers:
+        - name: "pocakscluster-52fc"
+          image: "pocacr01.azurecr.io/pocakscluster"
+          ports:
+          - containerPort: 80
